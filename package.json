@@ -1,0 +1,36 @@
+{
+  "name": "real-wuzzy",
+  "version": "0.0.1",
+  "description": "using wuzzy in the real world",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xupit3r/real-wuzzy"
+  },
+  "keywords": [
+    "wuzzy",
+    "text",
+    "fuzzy",
+    "similar",
+    "jaccard",
+    "jarowinkler",
+    "tanimoto",
+    "levenshtein",
+    "ngram"
+  ],
+  "dependencies": {
+    "wuzzy": "*"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-mocha-test": "~0.7.0",
+    "mocha": "*",
+    "chai": "*",
+    "markdox": "~0.1.x"
+  },
+  "author": "Joe D'Alessandro",
+  "license": "GPL"
+}
