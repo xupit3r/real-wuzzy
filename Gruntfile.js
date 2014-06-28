@@ -37,17 +37,18 @@ module.exports = function (grunt) {
 		var done = this.async();
 		var spelling = require('./index').spelling;
 
-		spelling('examples/data/english.words', function (err, checker) {
+		var wordFile = 'examples/data/english.words';
+		var trainCorpus = 'examples/data/big.txt';
+
+		spelling(wordFile, trainCorpus, function (err, checker) {
 			if (err) {
 				done(err);
 			} else {
 				var result = checker.check(word);
-				if (typeof result === 'string') {
-					grunt.log.ok(result);
+				if (result !== word) {
+					grunt.log.ok('did you mean ' + result);
 				} else {
-					result.forEach(function (v) {
-						grunt.log.ok(v.w + ' ' + v.r);
-					});
+					grunt.log.ok(result + ' looks to be spelled correctly');
 				}
 			}
 		});

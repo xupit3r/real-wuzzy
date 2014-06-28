@@ -2,6 +2,36 @@ var fs = require('fs');
 var split = require('split');
 var wuzzy = require('wuzzy');
 
+function train (corpus, done) {
+    fs.readFile(corpus, function (err, corpStr) {
+        if (err) {
+            done(err);
+        } else {
+            var Trained = function (freqs) {
+                this.freqs = freqs;
+            };
+
+            Trained.prototype.get = function (w) {
+                return (this.freqs[w]
+                    ? this.freqs[w]
+                    : 1
+                );
+            };
+
+            var f = {};
+            corpStr.toString().match(/[a-z]+/g).forEach(function (w) {
+                var normalized = w.toLowerCase();
+                f[normalized] = (f[normalized] 
+                    ? f[normalized] + 1
+                    : 1
+                );
+            });
+
+            done(null, new Trained(f)); 
+        }
+    });
+};
+
 function readWords (wordFile, done) {
     var words = {};
     fs.createReadStream(
@@ -17,9 +47,10 @@ function readWords (wordFile, done) {
     });
 };
 
-function getChecker (words) {
-    var SpellChecker = function () {
+function getChecker (ws, mdl) {
+    var SpellChecker = function (words, model) {
         this.words = words;
+        this.model = model;
     };
 
     SpellChecker.prototype.check = function (word) {
@@ -27,7 +58,7 @@ function getChecker (words) {
         if (!this.words[word]) {
             return this._corrections(word);
         } else {
-            return 'This is spelled correctly.';
+            return word;
         }
     };
 
@@ -35,26 +66,31 @@ function getChecker (words) {
         return Object.keys(this.words).map(function (w2) {
             return {
                 w: w2,
-                r: wuzzy.levenshtein(w1, w2)
+                r: wuzzy.levenshtein(w1, w2),
+                m: this.model.get(w2)
             };
-        }).sort(function (a, b) {
-            return b.r - a.r;
-        }).slice(0, 5);
+        }, this).sort(function (a, b) {
+            return (b.r - a.r);
+        }).slice(0, 10).sort(function (a, b) {
+            return (b.m - a.m);
+        })[0].w;
     };
 
-    return new SpellChecker(words);
+    return new SpellChecker(ws, mdl);
 };
 
-module.exports = function (wordFile, done) {
+module.exports = function (wordFile, trainCorpus, done) {
     readWords(wordFile, function (err, words) {
         if (err) {
-            if (typeof done === 'function') {
-                done(err);
-            } else {
-                throw err;
-            }
+            done(err);
         } else {
-            done(null, getChecker(words));
+            train(trainCorpus, function (err, model) {
+                if (err) {
+                    done(err);
+                } else {
+                    done(null, getChecker(words, model));
+                }
+            });
         }
     });
 };
