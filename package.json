@@ -22,7 +22,9 @@
     "ngram"
   ],
   "dependencies": {
-    "wuzzy": "*"
+    "wuzzy": "*",
+    "split": "0.3.0",
+    "underscore": "*"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
