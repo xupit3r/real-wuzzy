@@ -2,7 +2,7 @@ var fs = require('fs');
 var split = require('split');
 var wuzzy = require('wuzzy');
 
-function train (corpus, done) {
+function train (corrects, corpus, done) {
     fs.readFile(corpus, function (err, corpStr) {
         if (err) {
             done(err);
@@ -11,20 +11,25 @@ function train (corpus, done) {
                 this.freqs = freqs;
             };
 
-            Trained.prototype.get = function (w) {
+            Trained.prototype.freq = function (w) {
                 return (this.freqs[w]
                     ? this.freqs[w]
                     : 1
                 );
             };
 
+            Trained.prototype.keys = function (w) {
+                return Object.keys(this.freqs);
+            };
+
             var f = {};
-            corpStr.toString().match(/[a-z]+/g).forEach(function (w) {
-                var normalized = w.toLowerCase();
-                f[normalized] = (f[normalized] 
-                    ? f[normalized] + 1
-                    : 1
-                );
+            corpStr.toString().toLowerCase().match(/[a-z]+/g).forEach(function (w) {
+                if (corrects[w]) {
+                    f[w] = (f[w] 
+                        ? f[w] + 1
+                        : 1
+                    );
+                }
             });
 
             done(null, new Trained(f)); 
@@ -32,10 +37,10 @@ function train (corpus, done) {
     });
 };
 
-function readWords (wordFile, done) {
+function readCorrects (correctsFile, done) {
     var words = {};
     fs.createReadStream(
-        wordFile
+        correctsFile
     ).pipe(
         split()
     ).on('data', function (word) {
@@ -47,48 +52,42 @@ function readWords (wordFile, done) {
     });
 };
 
-function getChecker (ws, mdl) {
-    var SpellChecker = function (words, model) {
-        this.words = words;
+function getChecker (mdl) {
+    var SpellChecker = function (model) {
         this.model = model;
     };
 
     SpellChecker.prototype.check = function (word) {
-        word = word.toLowerCase();
-        if (!this.words[word]) {
-            return this._corrections(word);
-        } else {
-            return word;
-        }
+        return this._corrections(word.toLowerCase());
     };
 
     SpellChecker.prototype._corrections = function (w1) {
-        return Object.keys(this.words).map(function (w2) {
+        return this.model.keys().map(function (w2) {
             return {
                 w: w2,
                 r: wuzzy.levenshtein(w1, w2),
-                m: this.model.get(w2)
+                f: this.model.freq(w2)
             };
         }, this).sort(function (a, b) {
             return (b.r - a.r);
-        }).slice(0, 10).sort(function (a, b) {
-            return (b.m - a.m);
+        }).slice(0, 5).sort(function (a, b) {
+            return (b.f - a.f);
         })[0].w;
     };
 
-    return new SpellChecker(ws, mdl);
+    return new SpellChecker(mdl);
 };
 
-module.exports = function (wordFile, trainCorpus, done) {
-    readWords(wordFile, function (err, words) {
+module.exports = function (correctsFile, trainCorpus, done) {
+    readCorrects(correctsFile, function (err, corrects) {
         if (err) {
             done(err);
         } else {
-            train(trainCorpus, function (err, model) {
+            train(corrects, trainCorpus, function (err, model) {
                 if (err) {
                     done(err);
                 } else {
-                    done(null, getChecker(words, model));
+                    done(null, getChecker(model));
                 }
             });
         }

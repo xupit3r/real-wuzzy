@@ -37,16 +37,16 @@ module.exports = function (grunt) {
 		var done = this.async();
 		var spelling = require('./index').spelling;
 
-		var wordFile = 'examples/data/english.words';
+		var correctsFile = 'examples/data/english.words';
 		var trainCorpus = 'examples/data/big.txt';
 
-		spelling(wordFile, trainCorpus, function (err, checker) {
+		spelling(correctsFile, trainCorpus, function (err, checker) {
 			if (err) {
 				done(err);
 			} else {
 				var result = checker.check(word);
 				if (result !== word) {
-					grunt.log.ok('did you mean ' + result);
+					grunt.log.ok('did you mean: ' + result);
 				} else {
 					grunt.log.ok(result + ' looks to be spelled correctly');
 				}
