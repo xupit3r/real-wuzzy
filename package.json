@@ -30,8 +30,7 @@
     "grunt": "~0.4.1",
     "grunt-mocha-test": "~0.7.0",
     "mocha": "*",
-    "chai": "*",
-    "markdox": "~0.1.x"
+    "chai": "*"
   },
   "author": "Joe D'Alessandro",
   "license": "GPL"

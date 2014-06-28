@@ -7,10 +7,15 @@ function train (corrects, corpus, done) {
         if (err) {
             done(err);
         } else {
+            // provide an abstraction around the corpus of 
+            // words 
             var Trained = function (freqs) {
                 this.freqs = freqs;
             };
 
+            // provide access to the frequency counts of words in the corpus. 
+            // return a mimum of 1 to provide some handling of words that do 
+            // not exist in the word corpus.
             Trained.prototype.freq = function (w) {
                 return (this.freqs[w]
                     ? this.freqs[w]
@@ -18,12 +23,15 @@ function train (corrects, corpus, done) {
                 );
             };
 
-            Trained.prototype.keys = function (w) {
+            // get the set of recognized words from the corpus
+            Trained.prototype.words = function (w) {
                 return Object.keys(this.freqs);
             };
 
+            // build up frequency counts of words in the training corpus
             var f = {};
             corpStr.toString().toLowerCase().match(/[a-z]+/g).forEach(function (w) {
+                // limit words to those that exist in the English dictionary
                 if (corrects[w]) {
                     f[w] = (f[w] 
                         ? f[w] + 1
@@ -39,6 +47,7 @@ function train (corrects, corpus, done) {
 
 function readCorrects (correctsFile, done) {
     var words = {};
+    // read in the set of correct English words
     fs.createReadStream(
         correctsFile
     ).pipe(
@@ -62,27 +71,38 @@ function getChecker (mdl) {
     };
 
     SpellChecker.prototype._corrections = function (w1) {
-        return this.model.keys().map(function (w2) {
+        // go over each word in the corpus and collect edit 
+        // distance (using levenshtein distance) and frequency 
+        // counts for each word 
+        return this.model.words().map(function (w2) {
             return {
                 w: w2,
                 r: wuzzy.levenshtein(w1, w2),
                 f: this.model.freq(w2)
             };
         }, this).sort(function (a, b) {
+            // sort on edit distance and limit the final results 
+            // to the top 5
             return (b.r - a.r);
         }).slice(0, 5).sort(function (a, b) {
-            return (b.f - a.f);
-        })[0].w;
+            // sort the top 5 results on edit distance 
+            // weighted by frequency of appearance in the 
+            // corpus
+            return ((b.f * b.r) - (a.f * b.r));
+        })[0].w; // return the top result
     };
 
     return new SpellChecker(mdl);
 };
 
 module.exports = function (correctsFile, trainCorpus, done) {
+    // read in the dictionary of english words
     readCorrects(correctsFile, function (err, corrects) {
         if (err) {
             done(err);
         } else {
+            // train the spell checker using the provided corpus of 
+            // text
             train(corrects, trainCorpus, function (err, model) {
                 if (err) {
                     done(err);
