@@ -3,6 +3,4 @@ This repo will contain a set of real world examples that utilize algorithms impl
 
 # The Examples
 ## spellchecker
-
-**run it**
-    `grunt spelling:<word-to-check>`
+**run it** `grunt spelling:<word-to-check>` or read the [annotated source code](https://cdn.rawgit.com/xupit3r/real-wuzzy/master/docs/spelling.html)
