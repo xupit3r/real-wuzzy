@@ -6,4 +6,6 @@ The real-wuzzy examples can be installed via [npm](http://npmjs.org/package/real
 
 # The Examples
 ## spellchecker
+This spellchecker implementation was inspired by [this wonderful article by Peter Norvig](http://norvig.com/spell-correct.html).
+
 **run it** `grunt spelling:<word-to-check>` or read the [annotated source code](https://cdn.rawgit.com/xupit3r/real-wuzzy/master/docs/spelling.html)
