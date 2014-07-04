@@ -5,4 +5,4 @@ This repo will contain a set of real world examples that utilize algorithms impl
 ## spellchecker
 
 **run it**
-    grunt spelling:<word-to-check>
+    `grunt spelling:<word-to-check>`
